@@ -1,0 +1,3191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Empréstimos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #7C9AFF;
+            --primary-hover: #5A7BFF;
+            --success: #7ED957;
+            --success-light: #E8F7E1;
+            --warning: #FFB347;
+            --warning-light: #FFF3E1;
+            --danger: #FF6B6B;
+            --danger-light: #FFE1E1;
+            --info: #9D7CFF;
+            --info-light: #F1E8FF;
+            --background: #000000;
+            --card-bg: #16213E;
+            --border: #2A2A4A;
+            --text: #E6E6FA;
+            --text-secondary: #B8B8D8;
+            --accent-color: #7C9AFF;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --card-radius: 4px;
+            --input-radius: 4px;
+            --button-radius: 4px;
+            --transition: all 0.3s ease;
+        }
+
+        /* Remover tema claro */
+        [data-theme="dark"] {
+            display: none;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            transition: var(--transition);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* iOS-like header */
+        header {
+            background-color: var(--card-bg);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* iOS-like cards */
+        .indicator-card, .loan-form-section, .loan-table-section, 
+        .alerts-section, .chart-section {
+            background-color: var(--card-bg);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+        }
+
+        /* iOS-like inputs */
+        input, select, textarea {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--input-radius);
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(124, 154, 255, 0.2);
+        }
+
+        /* Adicionar feedback visual para campos com valores */
+        input:not(:placeholder-shown), select:not(:placeholder-shown) {
+            border-color: var(--success);
+            background-color: rgba(52, 199, 89, 0.05);
+        }
+
+        input:not(:placeholder-shown):focus, select:not(:placeholder-shown):focus {
+            border-color: var(--success);
+            box-shadow: 0 0 0 2px rgba(52, 199, 89, 0.1);
+        }
+
+        /* iOS-like buttons */
+        button {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--button-radius);
+            color: var(--text);
+            cursor: pointer;
+            padding: 12px 16px;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* iOS-like table */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 16px;
+        }
+
+        table th {
+            background-color: var(--card-bg);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* iOS-like status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-badge.warning {
+            background-color: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .status-badge.danger {
+            background-color: var(--danger-light);
+            color: var(--danger);
+        }
+
+        /* iOS-like charts */
+        .chart-container {
+            background-color: var(--card-bg);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* iOS-like animations */
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .indicator-card, .loan-form-section, .loan-table-section,
+        .alerts-section, .chart-section {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        /* iOS-like toast notifications */
+        .toast {
+            background-color: var(--card-bg);
+            border-radius: var(--card-radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        /* iOS-like form groups */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* iOS-like grid layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        /* iOS-like section titles */
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .section-title .number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 0.875rem;
+        }
+        
+        /* Indicadores Financeiros */
+        .financial-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .indicator-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .indicator-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .indicator-card .title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .indicator-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .indicator-card .change {
+            font-size: 0.8rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+        }
+        
+        .indicator-card .change.negative {
+            color: var(--danger);
+        }
+        
+        /* Seção 1: Cadastro Rápido de Empréstimos */
+        .loan-form-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .section-title .number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+        
+        input, select, textarea {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--button-radius);
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button i {
+            font-size: 16px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .btn-simulate {
+            background-color: var(--info);
+        }
+        
+        .btn-simulate:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #0d9488;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-icon {
+            padding: 8px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Simulação de Empréstimo */
+        .simulation-result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .simulation-result.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Estilo para botões desabilitados */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Feedback visual para campos inválidos */
+        input:invalid, select:invalid {
+            border-color: var(--danger);
+            background-color: rgba(255, 59, 48, 0.05);
+        }
+
+        input:invalid:focus, select:invalid:focus {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.1);
+        }
+        
+        .simulation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        
+        .simulation-table tr {
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .simulation-table tr:last-child {
+            border-bottom: none;
+        }
+        
+        .simulation-table th, .simulation-table td {
+            padding: 12px 8px;
+            text-align: left;
+        }
+        
+        .simulation-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            width: 50%;
+        }
+        
+        .simulation-table td {
+            font-weight: 600;
+        }
+        
+        .simulation-distribution {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .distribution-item {
+            text-align: center;
+        }
+        
+        .distribution-item .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .distribution-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Seção 2: Tabela de Controle */
+        .content-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .loan-table-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .search-container input {
+            width: 200px;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        
+        table th {
+            background-color: rgba(255, 255, 255, 0.05);
+            font-weight: 500;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+            font-size: 0.9rem;
+        }
+        
+        table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        
+        /* Status de empréstimo */
+        tr.atrasado {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        tr.atrasado:hover {
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+        
+        tr.em-aberto {
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        tr.em-aberto:hover {
+            background-color: rgba(16, 185, 129, 0.15);
+        }
+        
+        tr.alto-risco {
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+        
+        tr.alto-risco:hover {
+            background-color: rgba(245, 158, 11, 0.15);
+        }
+        
+        tr.quitado {
+            opacity: 0.7;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.atrasado {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .status-badge.em-aberto {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .status-badge.quitado {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: var(--info);
+        }
+        
+        .status-badge.alto-risco {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        /* Ações da tabela */
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* Seção 3: Painel de Alertas e Risco */
+        .alerts-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        
+        .alert-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .alert-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            color: var(--danger);
+        }
+        
+        .alert-icon.warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .alert-icon.info {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .alert-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .alert-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* Seção 4: Resumo Financeiro */
+        .chart-section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .chart-container {
+            min-height: 300px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .chart-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        /* Animação ATM */
+        .atm-container {
+            display: none;
+        }
+        
+        .atm {
+            display: none;
+        }
+        
+        .money {
+            display: none;
+        }
+        
+        /* Notificações e tooltips */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .toast {
+            background-color: var(--card-bg);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 16px;
+            min-width: 300px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease-out forwards;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .toast.success {
+            border-left-color: var(--success);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+        
+        .toast-close:hover {
+            color: var(--text);
+            transform: none;
+            box-shadow: none;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            .search-container {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-container input {
+                flex: 1;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            header {
+                padding: 12px 16px;
+            }
+            
+            .logo span {
+                display: none;
+            }
+        }
+
+        /* Métricas Avançadas */
+        .metrics-section {
+            margin-top: 24px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .metric-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .metric-header i {
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .metric-chart {
+            height: 100px;
+            position: relative;
+        }
+
+        /* iOS-like animations for metrics */
+        .metric-card {
+            animation: slideIn 0.3s ease-out forwards;
+            animation-delay: calc(var(--card-index) * 0.1s);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: var(--card-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-header h2 i {
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--border);
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form styles within modal */
+        .modal .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--input-radius);
+            padding: 10px 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal input:focus,
+        .modal select:focus,
+        .modal textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .modal .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Score Bar Styles */
+        .score-bar-container {
+            width: 100px;
+            height: 6px;
+            background-color: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .score-bar {
+            height: 100%;
+            background-color: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .score-bar.warning {
+            background-color: var(--warning);
+        }
+
+        .score-bar.danger {
+            background-color: var(--danger);
+        }
+
+        /* Medal Icons */
+        .medal-icon {
+            font-size: 1.2rem;
+            margin-right: 4px;
+        }
+
+        .medal-icon.gold {
+            color: #FFD700;
+        }
+
+        .medal-icon.silver {
+            color: #C0C0C0;
+        }
+
+        .medal-icon.bronze {
+            color: #CD7F32;
+        }
+
+        .client-score {
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .client-score.high {
+            color: var(--success);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .client-score.medium {
+            color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+
+        .client-score.low {
+            color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header>
+        <div class="logo">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Sistema de Empréstimos</span>
+        </div>
+        <div class="theme-toggle">
+            <button id="toggleTheme" class="btn-icon">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Indicadores Financeiros -->
+        <div class="financial-indicators">
+            <div class="indicator-card">
+                <div class="title">Total de Empréstimos Ativos</div>
+                <div class="value" id="activeLoansCount">0</div>
+                <div class="change" id="activeLoansChange">
+                    <i class="fas fa-arrow-up"></i> <span>0%</span> em relação ao mês anterior
+                </div>
+            </div>
+            <div class="indicator-card">
+                <div class="title">Capital Total Emprestado</div>
+                <div class="value" id="totalLoanValue">R$ 0,00</div>
+                <div class="change" id="totalLoanValueChange">
+                    <i class="fas fa-arrow-up"></i> <span>0%</span> em relação ao mês anterior
+                </div>
+            </div>
+            <div class="indicator-card">
+                <div class="title">Projeção de Lucro</div>
+                <div class="value" id="projectedProfit">R$ 0,00</div>
+                <div class="change" id="projectedProfitChange">
+                    <i class="fas fa-arrow-up"></i> <span>0%</span> em relação ao mês anterior
+                </div>
+            </div>
+            <div class="indicator-card">
+                <div class="title">Taxa de Inadimplência</div>
+                <div class="value" id="defaultRate">0%</div>
+                <div class="change negative" id="defaultRateChange">
+                    <i class="fas fa-arrow-up"></i> <span>0%</span> em relação ao mês anterior
+                </div>
+            </div>
+            <div class="indicator-card">
+                <div class="title">Média de Juros</div>
+                <div class="value" id="averageInterestRate">0%</div>
+                <div class="change" id="averageInterestRateChange">
+                    <i class="fas fa-chart-line"></i> <span>0%</span> em relação ao mês anterior
+                </div>
+            </div>
+            <div class="indicator-card">
+                <div class="title">Ticket Médio</div>
+                <div class="value" id="averageTicket">R$ 0,00</div>
+                <div class="change" id="averageTicketChange">
+                    <i class="fas fa-chart-line"></i> <span>0%</span> em relação ao mês anterior
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Métricas Avançadas -->
+        <div class="metrics-section">
+            <div class="section-title">
+                <div class="number">5</div>
+                <span>Métricas Avançadas</span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3>ROI (Return on Investment)</h3>
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="metric-value" id="roiValue">0%</div>
+                    <div class="metric-chart">
+                        <canvas id="roiChart"></canvas>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3>Índice de Risco</h3>
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="metric-value" id="riskIndex">0</div>
+                    <div class="metric-chart">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3>Eficiência de Cobrança</h3>
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="metric-value" id="collectionEfficiency">0%</div>
+                    <div class="metric-chart">
+                        <canvas id="collectionChart"></canvas>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3>Score de Clientes</h3>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="metric-value" id="clientScore">0</div>
+                    <div class="metric-chart">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- Seção 1: Cadastro Rápido de Empréstimos -->
+            <div class="loan-form-section">
+                <div class="section-title">
+                    <div class="number">1</div>
+                    <span>Cadastro Rápido de Empréstimos</span>
+                </div>
+                
+                <form id="loanForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Cliente</label>
+                            <input type="text" id="clientName" placeholder="Nome do cliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientRisk">Perfil de Risco</label>
+                            <select id="clientRisk">
+                                <option value="baixo">Baixo risco</option>
+                                <option value="medio">Médio risco</option>
+                                <option value="alto">Alto risco</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="loanAmount">Valor do Empréstimo (R$)</label>
+                            <input type="number" id="loanAmount" min="1" step="0.01" placeholder="Valor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="interestRate">Taxa de Juros (%)</label>
+                            <input type="number" id="interestRate" min="0" step="0.01" placeholder="Taxa" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="loanDate">Data do Empréstimo</label>
+                            <input type="date" id="loanDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loanTerm">Prazo (dias)</label>
+                            <input type="number" id="loanTerm" min="1" placeholder="Prazo" required>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button type="button" id="simulateBtn" class="btn-simulate">
+                            <i class="fas fa-calculator"></i> Simular
+                        </button>
+                        <button type="button" id="addLoanBtn" class="btn-primary">
+                            <i class="fas fa-plus"></i> Cadastrar
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="simulationResult" class="simulation-result">
+                    <h3><i class="fas fa-chart-pie"></i> Simulação do Empréstimo</h3>
+                    
+                    <table class="simulation-table">
+                        <tr>
+                            <th>Valor Emprestado</th>
+                            <td id="simLoanAmount">R$ 0,00</td>
+                        </tr>
+                        <tr>
+                            <th>Taxa de Juros</th>
+                            <td id="simInterestRate">0%</td>
+                        </tr>
+                        <tr>
+                            <th>Valor dos Juros</th>
+                            <td id="simInterestAmount">R$ 0,00</td>
+                        </tr>
+                        <tr>
+                            <th>Valor Total a Pagar</th>
+                            <td id="simTotalAmount">R$ 0,00</td>
+                        </tr>
+                        <tr>
+                            <th>Data de Vencimento</th>
+                            <td id="simDueDate">-</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="simulation-distribution">
+                        <div class="distribution-item">
+                            <div class="label">Reinvestimento (60%)</div>
+                            <div class="value" id="simReinvestment">R$ 0,00</div>
+                        </div>
+                        <div class="distribution-item">
+                            <div class="label">Lucro (30%)</div>
+                            <div class="value" id="simProfit">R$ 0,00</div>
+                        </div>
+                        <div class="distribution-item">
+                            <div class="label">Reserva (10%)</div>
+                            <div class="value" id="simReserve">R$ 0,00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section">
+                <!-- Seção 2: Tabela de Controle -->
+                <div class="loan-table-section">
+                    <div class="section-title">
+                        <div class="number">2</div>
+                        <span>Tabela de Controle</span>
+                    </div>
+                    
+                    <div class="table-controls">
+                        <div class="search-container">
+                            <input type="text" id="searchInput" placeholder="Buscar cliente...">
+                            <select id="statusFilter">
+                                <option value="todos">Todos os Status</option>
+                                <option value="Em Aberto">Em Aberto</option>
+                                <option value="Atrasado">Atrasado</option>
+                                <option value="Alto Risco">Alto Risco</option>
+                                <option value="Quitado">Quitado</option>
+                            </select>
+                            <button id="searchBtn" class="btn-primary btn-sm">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <button id="exportBtn" class="btn-outline btn-sm">
+                                <i class="fas fa-download"></i> Exportar
+                            </button>
+                            <button id="quickReportBtn" class="btn-info btn-sm">
+                                <i class="fas fa-file-alt"></i> Relatório
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="loansTable">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Risco</th>
+                                    <th>Score</th>
+                                    <th>Valor (R$)</th>
+                                    <th>Taxa (%)</th>
+                                    <th>Data Empréstimo</th>
+                                    <th>Data Pagamento</th>
+                                    <th>Status</th>
+                                    <th>Total (R$)</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loansTableBody">
+                                <!-- Dados serão inseridos aqui pelo JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Seção 3: Painel de Alertas e Risco -->
+                <div class="alerts-section">
+                    <div class="section-title">
+                        <div class="number">3</div>
+                        <span>Painel de Alertas e Risco</span>
+                    </div>
+                    
+                    <div id="alertsContainer">
+                        <!-- Alertas serão inseridos aqui pelo JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Seção 4: Resumo Financeiro -->
+                <div class="chart-section">
+                    <div class="section-title">
+                        <div class="number">4</div>
+                        <span>Resumo Financeiro</span>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div>
+                            <div class="chart-title">Status dos Empréstimos</div>
+                            <div class="chart-subtitle">Distribuição atual dos empréstimos por status</div>
+                            <div class="chart-container">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="chart-title">Clientes Mais Lucrativos</div>
+                            <div class="chart-subtitle">Top 5 clientes que geram mais lucro</div>
+                            <div class="chart-container">
+                                <canvas id="clientsChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="chart-title">Evolução do Capital</div>
+                            <div class="chart-subtitle">Crescimento do capital nos últimos 6 meses</div>
+                            <div class="chart-container">
+                                <canvas id="capitalChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="chart-title">Projeção de Recebimentos</div>
+                            <div class="chart-subtitle">Previsão de recebimentos para os próximos 30 dias</div>
+                            <div class="chart-container">
+                                <canvas id="projectionsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notificações -->
+    <div class="toast-container" id="toastContainer">
+        <!-- Notificações serão inseridas aqui pelo JavaScript -->
+    </div>
+    
+    <!-- Modal de Edição de Empréstimo -->
+    <div id="editLoanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Editar Empréstimo</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editLoanForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editClientName">Cliente</label>
+                            <input type="text" id="editClientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editClientRisk">Perfil de Risco</label>
+                            <select id="editClientRisk">
+                                <option value="baixo">Baixo risco</option>
+                                <option value="medio">Médio risco</option>
+                                <option value="alto">Alto risco</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editLoanAmount">Valor do Empréstimo (R$)</label>
+                            <input type="number" id="editLoanAmount" min="1" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editInterestRate">Taxa de Juros (%)</label>
+                            <input type="number" id="editInterestRate" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editLoanDate">Data do Empréstimo</label>
+                            <input type="date" id="editLoanDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLoanTerm">Prazo (dias)</label>
+                            <input type="number" id="editLoanTerm" min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editStatus">Status</label>
+                            <select id="editStatus">
+                                <option value="Em Aberto">Em Aberto</option>
+                                <option value="Atrasado">Atrasado</option>
+                                <option value="Alto Risco">Alto Risco</option>
+                                <option value="Quitado">Quitado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editHistoricoAtrasos">Histórico de Atrasos</label>
+                            <input type="number" id="editHistoricoAtrasos" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editObservacoes">Observações</label>
+                            <textarea id="editObservacoes" rows="3" placeholder="Adicione observações sobre o empréstimo..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-outline" id="cancelEditBtn">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script>
+        // LocalStorage functions
+        function saveLoansToLocalStorage() {
+            localStorage.setItem('loansData', JSON.stringify(loans));
+        }
+
+        function getLoansFromLocalStorage() {
+            const savedLoans = localStorage.getItem('loansData');
+            return savedLoans ? JSON.parse(savedLoans) : [];
+        }
+        
+        // Inicialização dos dados de empréstimos do localStorage ou usar dados padrão
+        let loans = getLoansFromLocalStorage();
+        
+        // Se não houver empréstimos no localStorage, use dados padrão
+        if (loans.length === 0) {
+            loans = [
+                {
+                    id: 1,
+                    cliente: "Edivania",
+                    risco: "baixo",
+                    valorEmprestado: 300,
+                    dataEmprestimo: "2025-02-27",
+                    prazo: 29,
+                    taxaJuros: 33,
+                    valorTotalPagar: 399,
+                    dataPagamento: "2025-03-27",
+                    status: "Em Aberto",
+                    valorFinalPagar: 399,
+                    reinvestimento: 239.4,
+                    lucro: 119.7,
+                    reserva: 39.9,
+                    historicoAtrasos: 0
+                },
+                {
+                    id: 2,
+                    cliente: "Lucas",
+                    risco: "medio",
+                    valorEmprestado: 100,
+                    dataEmprestimo: "2025-01-27",
+                    prazo: 7,
+                    taxaJuros: 10,
+                    valorTotalPagar: 110,
+                    dataPagamento: "2025-02-27",
+                    status: "Atrasado",
+                    valorFinalPagar: 121,
+                    reinvestimento: 72.6,
+                    lucro: 36.3,
+                    reserva: 12.1,
+                    historicoAtrasos: 1
+                },
+                {
+                    id: 3,
+                    cliente: "Edivania",
+                    risco: "baixo",
+                    valorEmprestado: 100,
+                    dataEmprestimo: "2025-03-07",
+                    prazo: 17,
+                    taxaJuros: 10,
+                    valorTotalPagar: 110,
+                    dataPagamento: "2025-03-17",
+                    status: "Atrasado",
+                    valorFinalPagar: 121,
+                    reinvestimento: 72.6,
+                    lucro: 36.3,
+                    reserva: 12.1,
+                    historicoAtrasos: 0
+                },
+                {
+                    id: 4,
+                    cliente: "Ruan",
+                    risco: "alto",
+                    valorEmprestado: 80,
+                    dataEmprestimo: "2025-03-04",
+                    prazo: 31,
+                    taxaJuros: 25,
+                    valorTotalPagar: 100,
+                    dataPagamento: "2025-04-07",
+                    status: "Alto Risco",
+                    valorFinalPagar: 100,
+                    reinvestimento: 60,
+                    lucro: 30,
+                    reserva: 10,
+                    historicoAtrasos: 2
+                }
+            ];
+            
+            // Salvar dados padrão no localStorage
+            saveLoansToLocalStorage();
+        }
+
+        // Elementos do DOM
+        const loanForm = document.getElementById('loanForm');
+        const clientNameInput = document.getElementById('clientName');
+        const clientRiskSelect = document.getElementById('clientRisk');
+        const loanAmountInput = document.getElementById('loanAmount');
+        const interestRateInput = document.getElementById('interestRate');
+        const loanDateInput = document.getElementById('loanDate');
+        const loanTermInput = document.getElementById('loanTerm');
+        const simulateBtn = document.getElementById('simulateBtn');
+        const addLoanBtn = document.getElementById('addLoanBtn');
+        const simulationResult = document.getElementById('simulationResult');
+        const loansTableBody = document.getElementById('loansTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const searchBtn = document.getElementById('searchBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const quickReportBtn = document.getElementById('quickReportBtn');
+        const alertsContainer = document.getElementById('alertsContainer');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        // Configuração inicial
+        const today = new Date().toISOString().split('T')[0];
+        loanDateInput.value = today;
+
+        // Atualizar estatísticas do dashboard
+        function updateDashboardStats() {
+            // Total de empréstimos ativos
+            const activeLoans = loans.filter(loan => loan.status !== "Quitado");
+            document.getElementById('activeLoansCount').textContent = activeLoans.length;
+            
+            // Capital total emprestado
+            const totalLoanValue = loans.reduce((sum, loan) => sum + loan.valorEmprestado, 0);
+            document.getElementById('totalLoanValue').textContent = formatCurrency(totalLoanValue);
+            
+            // Projeção de lucro
+            const projectedProfit = loans.reduce((sum, loan) => {
+                // Só consideramos lucro projetado para empréstimos não quitados
+                return loan.status !== "Quitado" ? sum + loan.lucro : sum;
+            }, 0);
+            document.getElementById('projectedProfit').textContent = formatCurrency(projectedProfit);
+            
+            // Taxa de inadimplência
+            const overdueLoans = loans.filter(loan => loan.status === "Atrasado");
+            const defaultRate = activeLoans.length > 0 ? (overdueLoans.length / activeLoans.length) * 100 : 0;
+            document.getElementById('defaultRate').textContent = `${defaultRate.toFixed(1)}%`;
+            
+            // Mudanças fictícias para demonstração
+            document.getElementById('activeLoansChange').innerHTML = 
+                `<i class="fas fa-arrow-up"></i> <span>12.5%</span> em relação ao mês anterior`;
+            
+            document.getElementById('totalLoanValueChange').innerHTML = 
+                `<i class="fas fa-arrow-up"></i> <span>8.3%</span> em relação ao mês anterior`;
+            
+            document.getElementById('projectedProfitChange').innerHTML = 
+                `<i class="fas fa-arrow-up"></i> <span>15.2%</span> em relação ao mês anterior`;
+            
+            if (overdueLoans.length > 0) {
+                document.getElementById('defaultRateChange').className = "change negative";
+                document.getElementById('defaultRateChange').innerHTML = 
+                    `<i class="fas fa-arrow-up"></i> <span>2.1%</span> em relação ao mês anterior`;
+            } else {
+                document.getElementById('defaultRateChange').className = "change";
+                document.getElementById('defaultRateChange').innerHTML = 
+                    `<i class="fas fa-arrow-down"></i> <span>1.5%</span> em relação ao mês anterior`;
+            }
+        }
+
+        // Formatação de moeda (R$)
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL' 
+            }).format(value);
+        }
+
+        // Formatação de data
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Calcular data futura
+        function calculateDueDate(startDate, days) {
+            const date = new Date(startDate);
+            date.setDate(date.getDate() + parseInt(days));
+            return date.toISOString().split('T')[0];
+        }
+
+        // Verificar se um empréstimo está atrasado
+        function isOverdue(dueDate) {
+            const today = new Date();
+            const due = new Date(dueDate);
+            return today > due;
+        }
+        
+        // Classificar empréstimo como de alto risco
+        function isHighRisk(loan) {
+            return loan.risco === "alto" || loan.historicoAtrasos >= 2;
+        }
+
+        // Atualizar status dos empréstimos baseado na data atual
+        function updateLoanStatus() {
+            const today = new Date();
+            
+            loans.forEach(loan => {
+                if (loan.status !== "Quitado") {
+                    const dueDate = new Date(loan.dataPagamento);
+                    
+                    // Verificar se é de alto risco
+                    if (isHighRisk(loan)) {
+                        loan.status = "Alto Risco";
+                    }
+                    // Verificar se está atrasado
+                    else if (today > dueDate) {
+                        loan.status = "Atrasado";
+                        
+                        // Calcular penalidade se ainda não aplicada (10% para pagamentos atrasados)
+                        if (loan.valorFinalPagar === loan.valorTotalPagar) {
+                            loan.valorFinalPagar = Math.round(loan.valorTotalPagar * 1.1 * 100) / 100;
+                            loan.reinvestimento = Math.round(loan.valorFinalPagar * 0.6 * 100) / 100;
+                            loan.lucro = Math.round(loan.valorFinalPagar * 0.3 * 100) / 100;
+                            loan.reserva = Math.round(loan.valorFinalPagar * 0.1 * 100) / 100;
+                        }
+                    } 
+                    // Em aberto e não é de alto risco
+                    else {
+                        loan.status = "Em Aberto";
+                    }
+                }
+            });
+            
+            // Salvar dados atualizados no localStorage
+            saveLoansToLocalStorage();
+        }
+
+        // Renderizar tabela de empréstimos
+        function renderLoanTable(loansToRender = loans) {
+            // Atualizar status dos empréstimos primeiro
+            updateLoanStatus();
+            
+            // Limpar a tabela
+            loansTableBody.innerHTML = '';
+            
+            // Renderizar os empréstimos
+            loansToRender.forEach(loan => {
+                const row = document.createElement('tr');
+                
+                // Adicionar classe baseada no status
+                row.classList.add(loan.status.toLowerCase().replace(' ', '-'));
+                
+                // Definir o ícone de status
+                let statusIcon = '';
+                if (loan.status === "Em Aberto") {
+                    statusIcon = '<i class="fas fa-check-circle"></i>';
+                } else if (loan.status === "Atrasado") {
+                    statusIcon = '<i class="fas fa-exclamation-circle"></i>';
+                } else if (loan.status === "Alto Risco") {
+                    statusIcon = '<i class="fas fa-exclamation-triangle"></i>';
+                } else if (loan.status === "Quitado") {
+                    statusIcon = '<i class="fas fa-check-double"></i>';
+                }
+                
+                // Calcular dias restantes ou dias de atraso
+                const today = new Date();
+                const dueDate = new Date(loan.dataPagamento);
+                const timeDiff = dueDate.getTime() - today.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                let daysInfo = '';
+                if (loan.status === "Quitado") {
+                    daysInfo = '';
+                } else if (daysDiff > 0) {
+                    daysInfo = `<span style="font-size: 0.8rem; color: var(--text-secondary);">(${daysDiff} dias restantes)</span>`;
+                } else if (daysDiff < 0) {
+                    daysInfo = `<span style="font-size: 0.8rem; color: var(--danger);">(${Math.abs(daysDiff)} dias de atraso)</span>`;
+                } else {
+                    daysInfo = `<span style="font-size: 0.8rem; color: var(--warning);">(vence hoje)</span>`;
+                }
+                
+                // Renderizar linha da tabela
+                row.innerHTML = `
+                    <td>${loan.cliente}</td>
+                    <td>
+                        <span class="status-badge ${loan.risco}">
+                            ${loan.risco.charAt(0).toUpperCase() + loan.risco.slice(1)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="client-score ${calculateClientScore(loan) >= 60 ? 'high' : calculateClientScore(loan) >= 40 ? 'medium' : 'low'}">
+                            ${Math.min(99, Math.max(0, Math.round(calculateClientScore(loan))))}
+                        </span>
+                    </td>
+                    <td>${formatCurrency(loan.valorEmprestado)}</td>
+                    <td>${loan.taxaJuros}%</td>
+                    <td>${formatDate(loan.dataEmprestimo)}</td>
+                    <td>${formatDate(loan.dataPagamento)} ${daysInfo}</td>
+                    <td>
+                        <span class="status-badge ${loan.status.toLowerCase().replace(' ', '-')}">
+                            ${statusIcon} ${loan.status}
+                        </span>
+                    </td>
+                    <td>${formatCurrency(loan.valorFinalPagar)}</td>
+                    <td class="table-actions">
+                        <button class="btn-success btn-sm pay-btn" data-id="${loan.id}" ${loan.status === "Quitado" ? 'disabled' : ''}>
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </button>
+                        <button class="btn-info btn-sm whatsapp-btn" data-id="${loan.id}" data-client="${loan.cliente}">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn-warning btn-sm details-btn" data-id="${loan.id}">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                        <button class="btn-danger btn-sm delete-btn" data-id="${loan.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                
+                loansTableBody.appendChild(row);
+            });
+            
+            // Adicionar event listeners para os botões
+            document.querySelectorAll('.pay-btn').forEach(btn => {
+                btn.addEventListener('click', handlePayLoan);
+            });
+            
+            document.querySelectorAll('.whatsapp-btn').forEach(btn => {
+                btn.addEventListener('click', handleWhatsAppMessage);
+            });
+            
+            document.querySelectorAll('.details-btn').forEach(btn => {
+                btn.addEventListener('click', handleShowDetails);
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteLoan);
+            });
+            
+            // Atualizar estatísticas do dashboard
+            updateDashboardStats();
+            
+            // Atualizar painel de alertas
+            updateAlerts();
+            
+            // Atualizar gráficos
+            updateCharts();
+        }
+
+        // Filtrar empréstimos
+        function filterLoans() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            
+            const filteredLoans = loans.filter(loan => {
+                const matchesSearch = loan.cliente.toLowerCase().includes(searchTerm);
+                const matchesStatus = statusValue === 'todos' || loan.status === statusValue;
+                return matchesSearch && matchesStatus;
+            });
+            
+            renderLoanTable(filteredLoans);
+            
+            // Mostrar notificação
+            if (filteredLoans.length === 0) {
+                showToast('Filtro aplicado', 'Nenhum resultado encontrado para os critérios selecionados.', 'info');
+            } else {
+                showToast('Filtro aplicado', `${filteredLoans.length} empréstimos encontrados.`, 'info');
+            }
+        }
+
+        // Simulação de empréstimo
+        function simulateLoan() {
+            const loanAmount = parseFloat(loanAmountInput.value);
+            const interestRate = parseFloat(interestRateInput.value);
+            const loanTerm = parseInt(loanTermInput.value);
+            const loanDate = loanDateInput.value;
+            
+            // Validar inputs
+            if (isNaN(loanAmount) || isNaN(interestRate) || isNaN(loanTerm) || !loanDate) {
+                showToast('Erro na simulação', 'Por favor, preencha todos os campos corretamente.', 'error');
+                return;
+            }
+            
+            // Calcular valores do empréstimo
+            const interestAmount = (loanAmount * interestRate) / 100;
+            const totalAmount = loanAmount + interestAmount;
+            const dueDate = calculateDueDate(loanDate, loanTerm);
+            
+            // Calcular distribuição
+            const reinvestment = totalAmount * 0.6;
+            const profit = totalAmount * 0.3;
+            const reserve = totalAmount * 0.1;
+            
+            // Atualizar resultado da simulação
+            document.getElementById('simLoanAmount').textContent = formatCurrency(loanAmount);
+            document.getElementById('simInterestRate').textContent = `${interestRate}%`;
+            document.getElementById('simInterestAmount').textContent = formatCurrency(interestAmount);
+            document.getElementById('simTotalAmount').textContent = formatCurrency(totalAmount);
+            document.getElementById('simDueDate').textContent = formatDate(dueDate);
+            document.getElementById('simReinvestment').textContent = formatCurrency(reinvestment);
+            document.getElementById('simProfit').textContent = formatCurrency(profit);
+            document.getElementById('simReserve').textContent = formatCurrency(reserve);
+            
+            // Mostrar resultado da simulação com animação
+            simulationResult.classList.add('show');
+            
+            // Atualizar visualização do formulário
+            updateFormVisuals();
+        }
+
+        // Adicionar novo empréstimo
+        function addLoan() {
+            const clientName = clientNameInput.value.trim();
+            const clientRisk = clientRiskSelect.value;
+            const loanAmount = parseFloat(loanAmountInput.value);
+            const interestRate = parseFloat(interestRateInput.value);
+            const loanTerm = parseInt(loanTermInput.value);
+            const loanDate = loanDateInput.value;
+            
+            // Validar inputs
+            if (!clientName || isNaN(loanAmount) || isNaN(interestRate) || isNaN(loanTerm) || !loanDate) {
+                showToast('Erro no cadastro', 'Por favor, preencha todos os campos corretamente.', 'error');
+                return;
+            }
+            
+            // Calcular valores do empréstimo
+            const interestAmount = (loanAmount * interestRate) / 100;
+            const totalAmount = loanAmount + interestAmount;
+            const dueDate = calculateDueDate(loanDate, loanTerm);
+            
+            // Gerar novo ID
+            const newId = loans.length > 0 ? Math.max(...loans.map(loan => loan.id)) + 1 : 1;
+            
+            // Verificar histórico de atrasos para este cliente
+            const clientLoans = loans.filter(loan => 
+                loan.cliente.toLowerCase() === clientName.toLowerCase()
+            );
+            
+            const historicoAtrasos = clientLoans.filter(loan => 
+                loan.status === "Atrasado" || loan.historicoAtrasos > 0
+            ).length;
+            
+            // Definir status inicial com base no risco
+            let initialStatus = "Em Aberto";
+            if (clientRisk === "alto" || historicoAtrasos >= 2) {
+                initialStatus = "Alto Risco";
+            }
+            
+            // Criar novo objeto de empréstimo
+            const newLoan = {
+                id: newId,
+                cliente: clientName,
+                risco: clientRisk,
+                valorEmprestado: loanAmount,
+                dataEmprestimo: loanDate,
+                prazo: loanTerm,
+                taxaJuros: interestRate,
+                valorTotalPagar: totalAmount,
+                dataPagamento: dueDate,
+                status: initialStatus,
+                valorFinalPagar: totalAmount,
+                reinvestimento: totalAmount * 0.6,
+                lucro: totalAmount * 0.3,
+                reserva: totalAmount * 0.1,
+                historicoAtrasos: historicoAtrasos
+            };
+            
+            // Adicionar novo empréstimo ao array
+            loans.push(newLoan);
+            
+            // Salvar no localStorage
+            saveLoansToLocalStorage();
+            
+            // Atualizar tabela
+            renderLoanTable();
+            
+            // Resetar formulário
+            resetForm();
+            
+            // Mostrar notificação
+            showToast('Empréstimo cadastrado', `Empréstimo de ${formatCurrency(loanAmount)} para ${clientName} cadastrado com sucesso.`, 'success');
+        }
+
+        // Resetar formulário
+        function resetForm() {
+            clientNameInput.value = '';
+            clientRiskSelect.value = 'baixo';
+            loanAmountInput.value = '';
+            interestRateInput.value = '';
+            loanDateInput.value = today;
+            loanTermInput.value = '';
+            simulationResult.classList.remove('show');
+            updateFormVisuals();
+        }
+
+        // Manipular pagamento de empréstimo
+        function handlePayLoan(e) {
+            const loanId = parseInt(e.currentTarget.getAttribute('data-id'));
+            const loanIndex = loans.findIndex(loan => loan.id === loanId);
+            
+            if (loanIndex !== -1) {
+                loans[loanIndex].status = "Quitado";
+                
+                // Incrementar histórico de atrasos se o pagamento foi de um empréstimo atrasado
+                if (loans[loanIndex].status === "Atrasado") {
+                    loans[loanIndex].historicoAtrasos += 1;
+                }
+                
+                // Salvar no localStorage
+                saveLoansToLocalStorage();
+                
+                // Atualizar tabela
+                renderLoanTable();
+                
+                // Mostrar notificação
+                showToast('Pagamento registrado', `Pagamento de ${formatCurrency(loans[loanIndex].valorFinalPagar)} do cliente ${loans[loanIndex].cliente} registrado com sucesso.`, 'success');
+            }
+        }
+        
+        // Manipular mensagem de WhatsApp
+        function handleWhatsAppMessage(e) {
+            const loanId = parseInt(e.currentTarget.getAttribute('data-id'));
+            const clientName = e.currentTarget.getAttribute('data-client');
+            const loan = loans.find(loan => loan.id === loanId);
+            
+            if (loan) {
+                // Aqui você poderia abrir o WhatsApp Web com uma mensagem pré-preenchida
+                // Por enquanto, mostraremos um toast para simular
+                
+                const message = `Olá ${clientName}, seu empréstimo de ${formatCurrency(loan.valorEmprestado)} vence em ${formatDate(loan.dataPagamento)}. O valor a pagar é ${formatCurrency(loan.valorFinalPagar)}.`;
+                
+                // Mostrar mensagem no toast
+                showToast('Mensagem para envio', message, 'info');
+                
+                // Em um sistema real, atualizaríamos o localStorage e renderizaríamos a tabela.
+                // Aqui é apenas uma simulação da funcionalidade.
+            }
+        }
+        
+        // Manipular exibição de detalhes
+        function handleShowDetails(e) {
+            const loanId = parseInt(e.currentTarget.getAttribute('data-id'));
+            showEditModal(loanId);
+        }
+
+        // Manipular exclusão de empréstimo
+        function handleDeleteLoan(e) {
+            const loanId = parseInt(e.currentTarget.getAttribute('data-id'));
+            
+            if (confirm('Tem certeza que deseja excluir este empréstimo?')) {
+                const deletedLoan = loans.find(loan => loan.id === loanId);
+                loans = loans.filter(loan => loan.id !== loanId);
+                
+                // Salvar no localStorage
+                saveLoansToLocalStorage();
+                
+                // Atualizar tabela
+                renderLoanTable();
+                
+                // Mostrar notificação
+                if (deletedLoan) {
+                    showToast('Empréstimo excluído', `Empréstimo de ${formatCurrency(deletedLoan.valorEmprestado)} para ${deletedLoan.cliente} foi excluído.`, 'warning');
+                }
+            }
+        }
+
+        // Exibir notificação toast
+        function showToast(title, message, type = 'primary') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = '<i class="fas fa-check-circle"></i>';
+                    break;
+                case 'warning':
+                    icon = '<i class="fas fa-exclamation-triangle"></i>';
+                    break;
+                case 'error':
+                    icon = '<i class="fas fa-times-circle"></i>';
+                    break;
+                case 'info':
+                    icon = '<i class="fas fa-info-circle"></i>';
+                    break;
+                default:
+                    icon = '<i class="fas fa-bell"></i>';
+            }
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            // Adicionar ao container
+            toastContainer.appendChild(toast);
+            
+            // Adicionar evento para fechar toast
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.style.animation = 'slideOut 0.3s ease-out forwards';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            });
+            
+            // Auto-fechar após 5 segundos
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.animation = 'slideOut 0.3s ease-out forwards';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+        
+        // Atualizar painel de alertas
+        function updateAlerts() {
+            // Limpar alertas existentes
+            alertsContainer.innerHTML = '';
+            
+            // Encontrar empréstimos atrasados
+            const overdueLoans = loans.filter(loan => loan.status === "Atrasado");
+            if (overdueLoans.length > 0) {
+                const alertCard = document.createElement('div');
+                alertCard.className = 'alert-card';
+                alertCard.innerHTML = `
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Empréstimos Atrasados</div>
+                        <div class="alert-message">
+                            Existem ${overdueLoans.length} empréstimos em atraso que precisam de atenção.
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-danger btn-sm" id="notifyOverdueBtn">
+                                <i class="fas fa-bell"></i> Notificar Todos
+                            </button>
+                        </div>
+                    </div>
+                `;
+                alertsContainer.appendChild(alertCard);
+                
+                // Adicionar evento de clique para o botão de notificação
+                document.getElementById('notifyOverdueBtn').addEventListener('click', () => {
+                    showToast('Notificações enviadas', `${overdueLoans.length} clientes foram notificados sobre atrasos.`, 'info');
+                });
+            }
+            
+            // Encontrar empréstimos de alto risco
+            const highRiskLoans = loans.filter(loan => loan.status === "Alto Risco");
+            if (highRiskLoans.length > 0) {
+                const alertCard = document.createElement('div');
+                alertCard.className = 'alert-card';
+                alertCard.innerHTML = `
+                    <div class="alert-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Empréstimos de Alto Risco</div>
+                        <div class="alert-message">
+                            Existem ${highRiskLoans.length} empréstimos classificados como alto risco.
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-warning btn-sm" id="reviewRiskBtn">
+                                <i class="fas fa-search"></i> Revisar Riscos
+                            </button>
+                        </div>
+                    </div>
+                `;
+                alertsContainer.appendChild(alertCard);
+                
+                // Adicionar evento de clique para o botão de revisão
+                document.getElementById('reviewRiskBtn').addEventListener('click', () => {
+                    showToast('Revisão de riscos', `Iniciada revisão de ${highRiskLoans.length} empréstimos de alto risco.`, 'info');
+                });
+            }
+            
+            // Empréstimos com vencimento próximo (nos próximos 7 dias)
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(today.getDate() + 7);
+            
+            const upcomingDueLoans = loans.filter(loan => {
+                if (loan.status === "Quitado") return false;
+                
+                const dueDate = new Date(loan.dataPagamento);
+                return dueDate > today && dueDate <= nextWeek;
+            });
+            
+            if (upcomingDueLoans.length > 0) {
+                const alertCard = document.createElement('div');
+                alertCard.className = 'alert-card';
+                alertCard.innerHTML = `
+                    <div class="alert-icon info">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Vencimentos Próximos</div>
+                        <div class="alert-message">
+                            ${upcomingDueLoans.length} empréstimos vencem nos próximos 7 dias.
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-info btn-sm" id="remindUpcomingBtn">
+                                <i class="fas fa-paper-plane"></i> Enviar Lembretes
+                            </button>
+                        </div>
+                    </div>
+                `;
+                alertsContainer.appendChild(alertCard);
+                
+                // Adicionar evento de clique para o botão de lembrete
+                document.getElementById('remindUpcomingBtn').addEventListener('click', () => {
+                    showToast('Lembretes enviados', `${upcomingDueLoans.length} clientes foram lembrados dos próximos vencimentos.`, 'info');
+                });
+            }
+            
+            // Se não houver alertas, mostrar mensagem
+            if (alertsContainer.children.length === 0) {
+                alertsContainer.innerHTML = `
+                    <div class="alert-card">
+                        <div class="alert-icon info">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">Nenhum alerta</div>
+                            <div class="alert-message">
+                                Não há alertas de risco ou atrasos no momento.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Charts
+        let statusChart, clientsChart, capitalChart, projectionsChart;
+        
+        // Atualizar gráficos
+        function updateCharts() {
+            updateStatusChart();
+            updateClientsChart();
+            updateCapitalChart();
+            updateProjectionsChart();
+        }
+        
+        // Gráfico de status
+        function updateStatusChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            
+            // Contar empréstimos por status
+            const statusCounts = {
+                'Em Aberto': 0,
+                'Atrasado': 0,
+                'Alto Risco': 0,
+                'Quitado': 0
+            };
+            
+            loans.forEach(loan => {
+                statusCounts[loan.status]++;
+            });
+            
+            // Calcular valor total por status
+            const statusAmounts = {
+                'Em Aberto': 0,
+                'Atrasado': 0,
+                'Alto Risco': 0,
+                'Quitado': 0
+            };
+            
+            loans.forEach(loan => {
+                statusAmounts[loan.status] += loan.valorFinalPagar;
+            });
+            
+            // Cores para cada status
+            const statusColors = {
+                'Em Aberto': '#10b981',
+                'Atrasado': '#ef4444',
+                'Alto Risco': '#f59e0b',
+                'Quitado': '#3b82f6'
+            };
+            
+            // Destruir gráfico anterior se existir
+            if (statusChart) {
+                statusChart.destroy();
+            }
+            
+            // Criar novo gráfico
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: Object.keys(statusCounts).map(status => statusColors[status]),
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e4e4e4',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = (value / total * 100).toFixed(1);
+                                    const amount = statusAmounts[label];
+                                    return `${label}: ${value} (${percentage}%) - ${formatCurrency(amount)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico de clientes mais lucrativos
+        function updateClientsChart() {
+            const ctx = document.getElementById('clientsChart').getContext('2d');
+            
+            // Agrupar por cliente
+            const clientProfits = {};
+            
+            loans.forEach(loan => {
+                if (!clientProfits[loan.cliente]) {
+                    clientProfits[loan.cliente] = 0;
+                }
+                
+                clientProfits[loan.cliente] += loan.lucro;
+            });
+            
+            // Ordenar por lucro e pegar os top 5
+            const sortedClients = Object.entries(clientProfits)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            // Destruir gráfico anterior se existir
+            if (clientsChart) {
+                clientsChart.destroy();
+            }
+            
+            // Criar novo gráfico
+            clientsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedClients.map(client => client[0]),
+                    datasets: [{
+                        label: 'Lucro Gerado (R$)',
+                        data: sortedClients.map(client => client[1]),
+                        backgroundColor: '#3b82f6',
+                        borderColor: 'rgba(59, 130, 246, 0.5)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico de evolução do capital
+        function updateCapitalChart() {
+            const ctx = document.getElementById('capitalChart').getContext('2d');
+            
+            // Simulação de crescimento do capital nos últimos 6 meses
+            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
+            const capitalValues = [5000, 6200, 7800, 9500, 11000, 13200];
+            const profitValues = [0, 1200, 1600, 1700, 1500, 2200];
+            
+            // Destruir gráfico anterior se existir
+            if (capitalChart) {
+                capitalChart.destroy();
+            }
+            
+            // Criar novo gráfico
+            capitalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Capital Total',
+                            data: capitalValues,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Lucro Mensal',
+                            data: profitValues,
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#e4e4e4',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico de projeção de recebimentos
+        function updateProjectionsChart() {
+            const ctx = document.getElementById('projectionsChart').getContext('2d');
+            
+            // Calcular recebimentos por dia nos próximos 30 dias
+            const today = new Date();
+            const projections = Array(30).fill(0);
+            
+            loans.forEach(loan => {
+                if (loan.status === "Quitado") return;
+                
+                const dueDate = new Date(loan.dataPagamento);
+                const diffTime = dueDate.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays >= 0 && diffDays < 30) {
+                    projections[diffDays] += loan.valorFinalPagar;
+                }
+            });
+            
+            // Preparar dados para o gráfico
+            const labels = Array(30).fill().map((_, i) => {
+                const date = new Date(today);
+                date.setDate(date.getDate() + i);
+                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            });
+            
+            // Destruir gráfico anterior se existir
+            if (projectionsChart) {
+                projectionsChart.destroy();
+            }
+            
+            // Criar novo gráfico
+            projectionsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Valor Previsto',
+                        data: projections,
+                        backgroundColor: function(context) {
+                            const value = context.dataset.data[context.dataIndex];
+                            return value > 0 ? '#10b981' : 'rgba(16, 185, 129, 0.2)';
+                        },
+                        borderColor: '#10b981',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Exportar dados (simulado)
+        function exportData() {
+            showToast('Exportação iniciada', 'Os dados serão exportados como arquivo CSV.', 'info');
+            
+            // Em um sistema real, aqui você geraria um arquivo CSV
+            setTimeout(() => {
+                showToast('Exportação concluída', 'Os dados foram exportados com sucesso.', 'success');
+            }, 1500);
+        }
+        
+        // Gerar relatório rápido (simulado)
+        function generateQuickReport() {
+            showToast('Gerando relatório', 'Aguarde enquanto geramos seu relatório.', 'info');
+            
+            // Em um sistema real, aqui você geraria um relatório PDF
+            setTimeout(() => {
+                const reportContent = `
+                    <strong>Resumo do Sistema de Empréstimos</strong><br>
+                    Total de empréstimos: ${loans.length}<br>
+                    Em aberto: ${loans.filter(loan => loan.status === "Em Aberto").length}<br>
+                    Atrasados: ${loans.filter(loan => loan.status === "Atrasado").length}<br>
+                    Alto risco: ${loans.filter(loan => loan.status === "Alto Risco").length}<br>
+                    Quitados: ${loans.filter(loan => loan.status === "Quitado").length}<br>
+                    <br>
+                    Capital total emprestado: ${formatCurrency(loans.reduce((sum, loan) => sum + loan.valorEmprestado, 0))}<br>
+                    Projeção de lucro: ${formatCurrency(loans.reduce((sum, loan) => sum + loan.lucro, 0))}<br>
+                `;
+                
+                showToast('Relatório gerado', reportContent, 'success');
+            }, 1500);
+        }
+        
+        // Alternar tema (simulado, apenas visual)
+        function toggleTheme() {
+            const themeBtnIcon = document.querySelector('#toggleTheme i');
+            
+            if (themeBtnIcon.classList.contains('fa-moon')) {
+                themeBtnIcon.classList.remove('fa-moon');
+                themeBtnIcon.classList.add('fa-sun');
+                showToast('Tema alterado', 'Tema claro ativado.', 'info');
+            } else {
+                themeBtnIcon.classList.remove('fa-sun');
+                themeBtnIcon.classList.add('fa-moon');
+                showToast('Tema alterado', 'Tema escuro ativado.', 'info');
+            }
+        }
+
+        // Event listeners
+        simulateBtn.addEventListener('click', simulateLoan);
+        addLoanBtn.addEventListener('click', addLoan);
+        searchBtn.addEventListener('click', filterLoans);
+        exportBtn.addEventListener('click', exportData);
+        quickReportBtn.addEventListener('click', generateQuickReport);
+        document.getElementById('toggleTheme').addEventListener('click', toggleTheme);
+        
+        // Adicionar event listeners para atualização automática
+        const formInputs = [
+            loanAmountInput,
+            interestRateInput,
+            loanTermInput,
+            loanDateInput,
+            clientRiskSelect
+        ];
+
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                // Verificar se todos os campos necessários estão preenchidos
+                const isFormValid = loanAmountInput.value && 
+                                  interestRateInput.value && 
+                                  loanTermInput.value && 
+                                  loanDateInput.value;
+
+                if (isFormValid) {
+                    simulateLoan();
+                }
+            });
+        });
+
+        // Atualizar visualização do formulário
+        function updateFormVisuals() {
+            const isFormValid = loanAmountInput.value && 
+                              interestRateInput.value && 
+                              loanTermInput.value && 
+                              loanDateInput.value;
+
+            // Atualizar aparência do botão de simulação
+            simulateBtn.style.opacity = isFormValid ? '1' : '0.5';
+            simulateBtn.style.cursor = isFormValid ? 'pointer' : 'not-allowed';
+            simulateBtn.disabled = !isFormValid;
+
+            // Atualizar aparência do botão de cadastro
+            addLoanBtn.style.opacity = isFormValid ? '1' : '0.5';
+            addLoanBtn.style.cursor = isFormValid ? 'pointer' : 'not-allowed';
+            addLoanBtn.disabled = !isFormValid;
+        }
+
+        // Adicionar event listeners para atualização visual
+        formInputs.forEach(input => {
+            input.addEventListener('input', updateFormVisuals);
+        });
+
+        // Atualizar visualização inicial
+        updateFormVisuals();
+
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                filterLoans();
+            }
+        });
+
+        // Inicialização
+        renderLoanTable();
+
+        // Atualizar métricas avançadas
+        function updateAdvancedMetrics() {
+            // Calcular ROI
+            const totalInvestment = loans.reduce((sum, loan) => sum + loan.valorEmprestado, 0);
+            const totalProfit = loans.reduce((sum, loan) => sum + loan.lucro, 0);
+            const roi = (totalProfit / totalInvestment) * 100;
+            document.getElementById('roiValue').textContent = `${roi.toFixed(1)}%`;
+
+            // Calcular Índice de Risco
+            const riskIndex = calculateRiskIndex();
+            document.getElementById('riskIndex').textContent = riskIndex.toFixed(1);
+
+            // Calcular Eficiência de Cobrança
+            const collectionEfficiency = calculateCollectionEfficiency();
+            document.getElementById('collectionEfficiency').textContent = `${collectionEfficiency.toFixed(1)}%`;
+
+            // Calcular Score de Clientes
+            const clientScore = calculateClientScore();
+            document.getElementById('clientScore').textContent = clientScore.toFixed(1);
+
+            // Atualizar gráficos
+            updateMetricCharts();
+        }
+
+        // Calcular Índice de Risco
+        function calculateRiskIndex() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+
+            const riskFactors = loans.reduce((sum, loan) => {
+                let risk = 0;
+                if (loan.status === "Atrasado") risk += 2;
+                if (loan.status === "Alto Risco") risk += 3;
+                if (loan.risco === "alto") risk += 1;
+                if (loan.risco === "medio") risk += 0.5;
+                return sum + risk;
+            }, 0);
+
+            return (riskFactors / totalLoans) * 10;
+        }
+
+        // Calcular Eficiência de Cobrança
+        function calculateCollectionEfficiency() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+
+            const paidLoans = loans.filter(loan => loan.status === "Quitado").length;
+            return (paidLoans / totalLoans) * 100;
+        }
+
+        // Calcular Score de Clientes
+        function calculateClientScore() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+
+            const clientScores = loans.reduce((sum, loan) => {
+                let score = 100;
+                if (loan.status === "Atrasado") score -= 20;
+                if (loan.status === "Alto Risco") score -= 30;
+                if (loan.historicoAtrasos > 0) score -= (loan.historicoAtrasos * 10);
+                return sum + score;
+            }, 0);
+
+            return clientScores / totalLoans;
+        }
+
+        // Atualizar gráficos de métricas
+        function updateMetricCharts() {
+            // Get CSS variables
+            const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim();
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+
+            // ROI Chart
+            const roiCtx = document.getElementById('roiChart').getContext('2d');
+            new Chart(roiCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lucro', 'Investimento'],
+                    datasets: [{
+                        data: [totalProfit, totalInvestment],
+                        backgroundColor: [successColor, primaryColor],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Risk Chart
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+            new Chart(riskCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Índice de Risco',
+                        data: [2.5, 3.1, 2.8, 3.5, 3.2, riskIndex],
+                        borderColor: dangerColor,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    }
+                }
+            });
+
+            // Collection Chart
+            const collectionCtx = document.getElementById('collectionChart').getContext('2d');
+            new Chart(collectionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Quitados', 'Em Aberto', 'Atrasados'],
+                    datasets: [{
+                        data: [
+                            loans.filter(l => l.status === "Quitado").length,
+                            loans.filter(l => l.status === "Em Aberto").length,
+                            loans.filter(l => l.status === "Atrasado").length
+                        ],
+                        backgroundColor: [
+                            successColor,
+                            primaryColor,
+                            dangerColor
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Score Chart
+            const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+            new Chart(scoreCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Pagamento', 'Histórico', 'Risco', 'Valor'],
+                    datasets: [{
+                        label: 'Score do Cliente',
+                        data: [
+                            calculatePaymentScore(),
+                            calculateHistoryScore(),
+                            calculateRiskScore(),
+                            calculateValueScore()
+                        ],
+                        backgroundColor: 'rgba(0, 122, 255, 0.2)',
+                        borderColor: primaryColor,
+                        pointBackgroundColor: primaryColor
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Funções auxiliares para cálculo de scores
+        function calculatePaymentScore() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+            const paidLoans = loans.filter(loan => loan.status === "Quitado").length;
+            return (paidLoans / totalLoans) * 100;
+        }
+
+        function calculateHistoryScore() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+            const goodHistoryLoans = loans.filter(loan => loan.historicoAtrasos === 0).length;
+            return (goodHistoryLoans / totalLoans) * 100;
+        }
+
+        function calculateRiskScore() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+            const lowRiskLoans = loans.filter(loan => loan.risco === "baixo").length;
+            return (lowRiskLoans / totalLoans) * 100;
+        }
+
+        function calculateValueScore() {
+            const totalLoans = loans.length;
+            if (totalLoans === 0) return 0;
+            const highValueLoans = loans.filter(loan => loan.valorEmprestado > 1000).length;
+            return (highValueLoans / totalLoans) * 100;
+        }
+
+        // Atualizar métricas ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAdvancedMetrics();
+        });
+
+        // Modal functionality
+        const editLoanModal = document.getElementById('editLoanModal');
+        const editLoanForm = document.getElementById('editLoanForm');
+        const modalCloseBtn = document.querySelector('.modal-close');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        let currentLoanId = null;
+
+        // Show modal function
+        function showEditModal(loanId) {
+            const loan = loans.find(l => l.id === loanId);
+            if (!loan) return;
+
+            currentLoanId = loanId;
+
+            // Fill form with loan data
+            document.getElementById('editClientName').value = loan.cliente;
+            document.getElementById('editClientRisk').value = loan.risco;
+            document.getElementById('editLoanAmount').value = loan.valorEmprestado;
+            document.getElementById('editInterestRate').value = loan.taxaJuros;
+            document.getElementById('editLoanDate').value = loan.dataEmprestimo;
+            document.getElementById('editLoanTerm').value = loan.prazo;
+            document.getElementById('editStatus').value = loan.status;
+            document.getElementById('editHistoricoAtrasos').value = loan.historicoAtrasos;
+            document.getElementById('editObservacoes').value = loan.observacoes || '';
+
+            // Show modal with animation
+            editLoanModal.classList.add('show');
+        }
+
+        // Hide modal function
+        function hideEditModal() {
+            editLoanModal.classList.remove('show');
+            currentLoanId = null;
+            editLoanForm.reset();
+        }
+
+        // Handle form submission
+        editLoanForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!currentLoanId) return;
+
+            const loanIndex = loans.findIndex(l => l.id === currentLoanId);
+            if (loanIndex === -1) return;
+
+            // Get form values
+            const updatedLoan = {
+                ...loans[loanIndex],
+                cliente: document.getElementById('editClientName').value,
+                risco: document.getElementById('editClientRisk').value,
+                valorEmprestado: parseFloat(document.getElementById('editLoanAmount').value),
+                taxaJuros: parseFloat(document.getElementById('editInterestRate').value),
+                dataEmprestimo: document.getElementById('editLoanDate').value,
+                prazo: parseInt(document.getElementById('editLoanTerm').value),
+                status: document.getElementById('editStatus').value,
+                historicoAtrasos: parseInt(document.getElementById('editHistoricoAtrasos').value),
+                observacoes: document.getElementById('editObservacoes').value
+            };
+
+            // Recalculate values
+            const interestAmount = (updatedLoan.valorEmprestado * updatedLoan.taxaJuros) / 100;
+            updatedLoan.valorTotalPagar = updatedLoan.valorEmprestado + interestAmount;
+            updatedLoan.dataPagamento = calculateDueDate(updatedLoan.dataEmprestimo, updatedLoan.prazo);
+            updatedLoan.valorFinalPagar = updatedLoan.valorTotalPagar;
+            updatedLoan.reinvestimento = updatedLoan.valorFinalPagar * 0.6;
+            updatedLoan.lucro = updatedLoan.valorFinalPagar * 0.3;
+            updatedLoan.reserva = updatedLoan.valorFinalPagar * 0.1;
+
+            // Update loan in array
+            loans[loanIndex] = updatedLoan;
+
+            // Save to localStorage
+            saveLoansToLocalStorage();
+
+            // Update UI
+            renderLoanTable();
+            hideEditModal();
+
+            // Show success message
+            showToast('Empréstimo atualizado', 'As alterações foram salvas com sucesso.', 'success');
+        });
+
+        // Close modal handlers
+        modalCloseBtn.addEventListener('click', hideEditModal);
+        cancelEditBtn.addEventListener('click', hideEditModal);
+        editLoanModal.addEventListener('click', (e) => {
+            if (e.target === editLoanModal) {
+                hideEditModal();
+            }
+        });
+
+        // Update the handleShowDetails function to use the modal
+        function handleShowDetails(e) {
+            const loanId = parseInt(e.currentTarget.getAttribute('data-id'));
+            showEditModal(loanId);
+        }
+
+        // Determinar medalha do cliente
+        function getClientMedal(score) {
+            if (score >= 80) return '<i class="fas fa-medal medal-icon gold"></i>';
+            if (score >= 60) return '<i class="fas fa-medal medal-icon silver"></i>';
+            if (score >= 40) return '<i class="fas fa-medal medal-icon bronze"></i>';
+            return '';
+        }
+    </script>
+</body>
+</html>
